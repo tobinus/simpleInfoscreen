@@ -1,0 +1,54 @@
+body {
+background: #ffffff;-webkit-transform-origin: 0 0; transform-origin: 0 0; }#tui-animation {
+overflow: hidden;
+position: relative;
+background: #ffffff;
+width: 1920px;
+height: 1080px;
+-webkit-touch-callout: none;
+-webkit-user-select: none;
+-khtml-user-select: none;
+-moz-user-select: none;
+-ms-user-select: none;
+user-select: none;
+-webkit-perspective: 500px;
+perspective: 500px;
+}#tui-animation div {
+-webkit-transform-style: preserve-3d;
+transform-style: preserve-3d;
+}
+#tui-ct {
+position: absolute;
+width: 1920px;
+height: 1080px;
+z-index: 4;
+background: transparent;
+}
+#tui-13 {
+font-weight: bold;
+text-decoration: none;
+color: #000000;
+text-align: left;
+font-style: normal;
+font-family: 'Lora';
+font-size: 50px;
+white-space: nowrap;
+position: absolute;
+z-index: 3;
+}
+#tui-12 {
+font-weight: bold;
+text-decoration: none;
+color: #000000;
+text-align: left;
+font-style: normal;
+font-family: 'Lora';
+font-size: 50px;
+white-space: nowrap;
+position: absolute;
+z-index: 2;
+}
+#tui-10 {
+position: absolute;
+z-index: 1;
+}

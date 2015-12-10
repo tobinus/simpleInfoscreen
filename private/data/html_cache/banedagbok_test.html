@@ -1,0 +1,257 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+                <title>Banedagbok</title>
+        <meta charset="UTF-8">
+        <script src="js/jquery-2.1.4.js"></script>
+
+        <script>
+            function getDate() {
+                return new Date();
+            }
+            function updateMinute() {
+                var date = getDate();
+                var minutes = date.getMinutes();
+                if (minutes % 5 == 0) {
+                    updateRowAppearance(date);
+                }
+                if (minutes < 10) {
+                    minutes = "0" + minutes;
+                }
+                document.getElementById('minutt' ).innerHTML = "" + minutes;
+            }
+            function updateHour() {
+                var date = getDate();
+                var hours = date.getHours();
+                if (hours < 10) {
+                    hours = "0" + hours;
+                }
+                document.getElementById('time' ).innerHTML = "" + hours;
+            }
+            function startClock() {
+                var date = getDate();
+                // set current value
+                updateHour();
+                updateMinute();
+                var untilNextMinute = 60 - date.getSeconds();
+                var untilNextHour = 60 - date.getMinutes();
+                setTimeout(function () {
+                    setInterval(updateMinute, 60000);
+                    updateMinute();
+                }, untilNextMinute * 1000);
+                setTimeout(function () {
+                    setInterval(updateHour, 3600000);
+                    updateHour();
+                }, (untilNextHour * 60000) - (date.getSeconds() * 1000));
+                updateRowAppearance(date);
+            }
+
+            function updateRowAppearance(date)
+            {
+                var getTime = ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
+                var markedPrimary = false;
+                var previous;
+                $( '#kamper' ).find( 'tbody' ).children().each( function ()
+                {
+                    var $this = $( this );
+                    if ($this.children().html() <= getTime)
+                    {
+                        $this.removeClass( 'bg-primary' ).addClass( 'text-muted' );
+                    } else if (!markedPrimary)
+                    {
+                        if (previous != null)
+                        {
+                            previous.removeClass( 'text-muted' ).addClass( 'bg-primary' );
+                        }
+                        markedPrimary = true;
+                    }
+                    previous = $this;
+                } );
+                if ("21:17" > getTime && !markedPrimary) {
+                    // The last match is still active, but it is marked as done
+                    previous.removeClass( 'text-muted' ).addClass( 'bg_primary' );
+                }
+            }
+
+            
+        </script>
+
+        <!-- Latest compiled CSS -->
+        <link rel="stylesheet" href="bootstrap/css/bootstrap.css">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="bootstrap/css/bootstrap-theme.css">
+
+        <style>
+           /* col {
+                width: fit-content;
+                width: -moz-fit-content;
+                width: -webkit-fit-content;
+            }
+            col#strek {
+                width: 1em;
+            }
+            col#bortelag {
+                width: available;
+                width: fill-available;
+                width: -moz-available;
+            } */
+
+            tr.active {
+                font-weight: bold;
+            }
+
+            @keyframes blink {
+                0% { opacity: 1.0; }
+                50% { opacity: 0.0; }
+                100% { opacity: 1.0; }
+            }
+
+            @-webkit-keyframes blink {
+                0% { opacity: 1.0; }
+                50% { opacity: 0.0; }
+                100% { opacity: 1.0; }
+            }
+
+            #kolon {
+                animation: blink 4s step-start 0s infinite;
+                -webkit-animation: blink 4s step-start 0s infinite;
+            }
+
+            body {
+                min-width: 1872px;
+                min-height: 1048px;
+            }
+            /*
+            body {
+                font-size: 2em;
+            }
+            h1 {
+                font-size: 3em;
+            }
+
+            h1 small {
+                font-size: 1.6em;
+            }
+
+            table {
+                font-size: 2.3em;
+            } */
+            h2 {
+                font-weight: bold;
+            }
+            body {
+                font-family: "Liberation Sans", sans-serif;
+            }
+            table {
+                font-weight: 700;
+            }
+            tbody, tfoot {
+                font-size: 42px;
+            }
+
+        </style>
+
+        <!-- Latest compiled and minified JavaScript -->
+        <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> -->
+            </head>
+    
+    <body>
+    <div class="container-fluid">
+                <div class="row first">
+            <div class="col-lg-12 clearfix" style="margin-top:10px">
+                <span class="glyphicon glyphicon-info-sign pull-left text-info" aria-hidden="true" style="font-size: 115px"></span>
+                <h2 class="pull-left text-info" style="vertical-align: middle">&nbsp;&nbsp;Håndballkamper i Fethallen</h2>
+                <h2 class="text-muted pull-right" style="vertical-align: middle">
+        søndag 13.12.15                </h2>
+            </div>
+        </div>
+                <div class="row">
+            <div class="col-lg-12">
+                                <table style="width: 100%; " class="table table-striped" id="kamper">
+                    <colgroup>
+                        <col id="kampstart"/>
+                        <col id="hjemmelag"/>
+                        <col id="strek"/>
+                        <col id="bortelag"/>
+                        <col id="avdeling"/>
+                        <col id="hjemmegarderobe"/>
+                        <col id="bortegarderobe"/>
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th rowspan="2">Kampstart</th>
+                        <th rowspan="2">Hjemmelag</th>
+                        <th rowspan="2">–</th>
+                        <th rowspan="2">bortelag</th>
+                        <th rowspan="2">Avdeling</th>
+                        <th colspan="2">Garderober</th>
+                    </tr>
+                    <tr>
+
+                        <th>hjemme</th>
+                        <th>borte</th>
+                    </tr>
+                    </thead>
+                                        <tfoot>
+                    <tr class="text-muted">
+                        <td><em>21:17</em></td>
+                        <td colspan="7"><em>Slutt for dagen</em></td>
+                    </tr>
+                    </tfoot>
+                                        <tbody>
+                                        <tr>
+                        <td>10:00</td>
+                        <td>Fet Blå</td><td> – </td><td>Haslum Gul</td>
+                        <td>G 11</td>
+                        <td>A</td>
+                        <td>C</td>
+                    </tr>
+                                        <tr>
+                        <td>10:55</td>
+                        <td>Fet Gul</td><td> – </td><td>Bygdøy Monolitten Rød</td>
+                        <td>G 11</td>
+                        <td>B</td>
+                        <td>D</td>
+                    </tr>
+                                        <tr>
+                        <td>11:55</td>
+                        <td>Fet Blå</td><td> – </td><td>Bygdø Monolitten Blå</td>
+                        <td>G 11</td>
+                        <td>A</td>
+                        <td>C</td>
+                    </tr>
+                                        <tr>
+                        <td>12:50</td>
+                        <td>Fet Gul</td><td> – </td><td>Kjelsås Rød</td>
+                        <td>G 11</td>
+                        <td>B</td>
+                        <td>D</td>
+                    </tr>
+                                        <tr>
+                        <td>13:45</td>
+                        <td>Fet</td><td> – </td><td>Skedsmo</td>
+                        <td>G 14</td>
+                        <td>A</td>
+                        <td>C</td>
+                    </tr>
+                                        <tr>
+                        <td>14:40</td>
+                        <td>Fet</td><td> – </td><td>Fjellhammer 3</td>
+                        <td>4.div Kvinner Avd.02</td>
+                        <td>B</td>
+                        <td>D</td>
+                    </tr>
+                                        </tbody>
+                </table>
+                                            </div>
+        </div>
+                    <div class="row" style="position: fixed; bottom: 0; width: 100%; z-index: -1">
+                <div class="col-md-6">
+                    <p class="text-muted"><small>Hentet fra handball.no</small></p>
+                </div>
+                <div class="col-md-6"></div>
+            </div>
+            </div>
+    </body>
+</html>

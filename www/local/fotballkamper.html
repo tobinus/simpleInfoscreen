@@ -1,0 +1,216 @@
+﻿<!DOCTYPE html>
+<html>
+    <head>
+                <title>Fotballkamper</title>
+        <meta charset="UTF-8">
+        <script src="../js/jquery-2.1.4.js"></script>
+
+        <script>
+            function getDate() {
+                return new Date();
+            }
+            function updateMinute() {
+                var date = getDate();
+                var minutes = date.getMinutes();
+                if (minutes < 10) {
+                    minutes = "0" + minutes;
+                }
+                document.getElementById('minutt' ).innerHTML = "" + minutes;
+            }
+            function updateHour() {
+                var date = getDate();
+                var hours = date.getHours();
+                if (hours < 10) {
+                    hours = "0" + hours;
+                }
+                document.getElementById('time' ).innerHTML = "" + hours;
+            }
+            function startClock() {
+                var date = getDate();
+                // set current value
+                updateHour();
+                updateMinute();
+                var untilNextMinute = 60 - date.getSeconds();
+                var untilNextHour = 60 - date.getMinutes();
+                setTimeout(function () {
+                    setInterval(updateMinute, 60000);
+                    updateMinute();
+                }, untilNextMinute * 1000);
+                setTimeout(function () {
+                    setInterval(updateHour, 3600000);
+                    updateHour();
+                }, (untilNextHour * 60000) - (date.getSeconds() * 1000));
+            }
+
+            $( document ).ready(function () {
+                startClock();
+            });
+
+        </script>
+
+        <!-- Latest compiled CSS -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap.css">
+
+        <!-- Optional theme -->
+        <link rel="stylesheet" href="../bootstrap/css/bootstrap-theme.css">
+
+        <style>
+           /* col {
+                width: fit-content;
+                width: -moz-fit-content;
+                width: -webkit-fit-content;
+            }
+            col#strek {
+                width: 1em;
+            }
+            col#bortelag {
+                width: available;
+                width: fill-available;
+                width: -moz-available;
+            } */
+
+            tr.active {
+                font-weight: bold;
+            }
+
+            @keyframes blink {
+                0% { opacity: 1.0; }
+                50% { opacity: 0.0; }
+                100% { opacity: 1.0; }
+            }
+
+            @-webkit-keyframes blink {
+                0% { opacity: 1.0; }
+                50% { opacity: 0.0; }
+                100% { opacity: 1.0; }
+            }
+
+            #kolon {
+                animation: blink 4s step-start 0s infinite;
+                -webkit-animation: blink 4s step-start 0s infinite;
+            }
+
+            body {
+                min-width: 1872px;
+                min-height: 1048px;
+            }
+            /*
+            body {
+                font-size: 2em;
+            }
+            h1 {
+                font-size: 3em;
+            }
+
+            h1 small {
+                font-size: 1.6em;
+            }
+
+            table {
+                font-size: 2.3em;
+            } */
+            h2 {
+                font-weight: bold;
+            }
+            body {
+                font-family: "Liberation Sans", sans-serif;
+            }
+            table {
+                font-weight: 700;
+            }
+            tbody, tfoot {
+                font-size: 42px;
+            }
+
+        </style>
+
+        <!-- Latest compiled and minified JavaScript -->
+        <!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script> -->
+            </head>
+    
+    <body>
+    <div class="container-fluid">
+                <div class="row first">
+            <div class="col-lg-12 clearfix" style="margin-top:10px">
+                <span class="glyphicon glyphicon-info-sign pull-left text-info" aria-hidden="true" style="font-size: 115px"></span>
+                <h2 class="pull-left text-info" style="vertical-align: middle">&nbsp;&nbsp;Fotballkamper på Fedrelandet</h2>
+                <h2 class="text-muted pull-right" style="vertical-align: middle">
+                    <span id="time"></span
+                            ><span id="kolon">:</span
+                        ><span id="minutt"></span
+                    >
+                </h2>
+            </div>
+        </div>
+                <div class="row">
+                                                <div class="col-lg-12">
+                <table style="width: 100%;" class="table table-striped" id="kamper">
+                    <colgroup>
+                        <col id="kampstart"/>
+                        <col id="hjemmelag"/>
+                        <col id="strek"/>
+                        <col id="bortelag"/>
+                        <col id="avdeling"/>
+                        <col id="bane"/>
+                                            </colgroup>
+                    <thead>
+                    <tr>
+                        <th>Kampstart</th>
+                        <th>Hjemmelag</th>
+                        <th>–</th>
+                        <th>bortelag</th>
+                        <th>Avdeling</th>
+                        <th>Bane</th>
+                                            </tr>
+                    </thead>
+                    <tbody>
+                                        <tr>
+                        <td>17:00</td>
+                        <td>Fet Grønn</td><td> – </td><td>Rælingen Blå</td>
+                        <td>G 07</td>
+                        <td>Ballbinge </td>
+                    </tr>
+                                        <tr>
+                        <td>17:00</td>
+                        <td>Fet 2</td><td> – </td><td>Bjørkelangen</td>
+                        <td>G 11</td>
+                        <td> 7-er A</td>
+                    </tr>
+                                        <tr>
+                        <td>17:00</td>
+                        <td>Fet 2</td><td> – </td><td>Gjerdrum 3</td>
+                        <td>G 12</td>
+                        <td> 7-er B</td>
+                    </tr>
+                                        <tr>
+                        <td>17:55</td>
+                        <td>Fet Blå</td><td> – </td><td>Rælingen Gul</td>
+                        <td>G 07</td>
+                        <td>Ballbinge </td>
+                    </tr>
+                                        <tr>
+                        <td>18:15</td>
+                        <td>Fet 2</td><td> – </td><td>Gjerdrum 2</td>
+                        <td>G 16 3.div</td>
+                        <td>11-er</td>
+                    </tr>
+                                        <tr>
+                        <td>18:50</td>
+                        <td>Fet Sort</td><td> – </td><td>Aurskog/Finstadbru Hvit</td>
+                        <td>G 09</td>
+                        <td>Ballbinge </td>
+                    </tr>
+                                        </tbody>
+                </table>
+            </div>
+                                                </div>
+                    <div class="row" style="position: absolute; bottom: 0; width: 100%">
+                <div class="col-md-6">
+                    <p class="text-muted"><small>Hentet fra fotball.no</small></p>
+                </div>
+                <div class="col-md-6"></div>
+            </div>
+
+            </div>
+    </body>
+</html>

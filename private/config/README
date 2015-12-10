@@ -1,0 +1,4 @@
+It is rather important to either:
+ * Limit access to this folder (403 Forbidden)
+ * Limit access to .ini-files
+ * Place this folder outside the website root (and update include.php)
