@@ -42,7 +42,7 @@ class MatchDates extends AbstractSettings
     protected function getExpectations()
     {
         return [
-            'dates' => 'array datetime',
+            'dates' => 'array matchdate',
             'version' => 'float',
         ];
     }
@@ -76,5 +76,17 @@ class MatchDates extends AbstractSettings
         } else {
             throw new \RuntimeException("The date $name was not found in the configuration file.");
         }
+    }
+
+    /**
+     * Make sure a valid date is used, but return the strtotime string, not the resulting date
+     * @param $value
+     * @param $remainder
+     */
+    protected function validateMatchdate($value, $remainder) {
+        if (strtotime($value) === false) {
+            throw new \InvalidArgumentException("Date value \"$value\" couldn't be parsed.");
+        }
+        return $value;
     }
 }
