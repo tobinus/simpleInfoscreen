@@ -1,5 +1,4 @@
-﻿{% set sammeDag = dato|date_modify('midnight') == date('today') %}
-{% set dagSlutt = kamper ? (kamper|last).starttid|date_modify("+1 hour")|date("H:i") : "00:00" %}
+﻿{% set dagSlutt = kamper ? (kamper|last).sluttid|date("H:i") : "00:00" %}
 <!DOCTYPE html>
 <html>
     <head>
@@ -9,6 +8,17 @@
         <script src="js/jquery-2.1.4.js"></script>
 
         <script>
+            var sameDay = function() {
+
+                var today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                var matchDay = new Date("{{ dato|date_modify('midnight')|date("F j, Y") }}");
+                matchDay.setHours(0, 0, 0, 0);
+
+                return today.getTime() == matchDay.getTime();
+            }();
+
             function getDate() {
                 return new Date();
             }
@@ -36,8 +46,10 @@
                 // set current value
                 updateHour();
                 updateMinute();
+                // when will we update minute and hour next?
                 var untilNextMinute = 60 - date.getSeconds();
                 var untilNextHour = 60 - date.getMinutes();
+                // set them to update when the time has come
                 setTimeout(function () {
                     setInterval(updateMinute, 60000);
                     updateMinute();
@@ -46,41 +58,37 @@
                     setInterval(updateHour, 3600000);
                     updateHour();
                 }, (untilNextHour * 60000) - (date.getSeconds() * 1000));
+                // show what matches are done playing, etc
                 updateRowAppearance(date);
             }
 
             function updateRowAppearance(date)
             {
                 var getTime = ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
-                var markedPrimary = false;
-                var previous;
-                $( '#kamper' ).find( 'tbody' ).children().each( function ()
-                {
-                    var $this = $( this );
-                    if ($this.children().html() <= getTime)
-                    {
-                        $this.removeClass( 'bg-primary' ).addClass( 'text-muted' );
-                    } else if (!markedPrimary)
-                    {
-                        if (previous != null)
-                        {
-                            previous.removeClass( 'text-muted' ).addClass( 'bg-primary' );
-                        }
-                        markedPrimary = true;
-                    }
-                    previous = $this;
-                } );
-                if ("{{ dagSlutt }}" > getTime && !markedPrimary) {
-                    // The last match is still active, but it is marked as done
-                    previous.removeClass( 'text-muted' ).addClass( 'bg_primary' );
-                }
+                var isDone = function (index) {
+                    return $(this).find("td").eq(1).text() < getTime;
+                };
+                var isInProgress = function (index) {
+                    var cells = $(this).find("td");
+                    return getTime >= cells.eq(0).text() && getTime <= cells.eq(1).text();
+                };
+                var isNotStarted = function (index) {
+                    return getTime < $(this).find("td").eq(0).text();
+                };
+
+                var rows = $( '#kamper' ).find( 'tbody' ).children();
+
+                rows.find(isDone).removeClass().addClass('text-muted');
+                rows.find(isInProgress).removeClass().addClass('bg-primary');
+                rows.find(isNotStarted).removeClass();  // not really needed; they will never get a class in the first place
+
             }
 
-            {% if sammeDag %}
-            $( document ).ready(function () {
-                startClock();
-            });
-            {% endif %}
+            if (sameDay) {
+                $(document).ready(function () {
+                    startClock();
+                });
+            }
 
         </script>
 
@@ -125,11 +133,6 @@
                 animation: blink 4s step-start 0s infinite;
                 -webkit-animation: blink 4s step-start 0s infinite;
             }
-
-            body {
-                min-width: 1872px;
-                min-height: 1048px;
-            }
             /*
             body {
                 font-size: 2em;
@@ -164,10 +167,13 @@
                 <span class="glyphicon glyphicon-info-sign pull-left text-info" aria-hidden="true" style="font-size: 115px"></span>
                 <h2 class="pull-left text-info" style="vertical-align: middle">&nbsp;&nbsp;Håndballkamper i Fethallen</h2>
                 <h2 class="text-muted pull-right" style="vertical-align: middle">
-        {% if not sammeDag %}{{ dato|day('nob', 'f') }} {{ dato|date("d.m.y") }}{% else %}<span id="time"></span
-                            ><span id="kolon">:</span
-                        ><span id="minutt"></span
-                    >{% endif %}
+                    <script>
+                        if (sameDay) {
+                            document.write('<span id="time"></span><span id="kolon">:</span><span id="minutt"></span>');
+                        } else {
+                            document.write("{{ dato|day('nob', 'f') }} {{ dato|date("d.m.y") }}");
+                        }
+                    </script>
                 </h2>
             </div>
         </div>
@@ -178,6 +184,7 @@
                 <table style="width: 100%; {% if not kamper %}opacity: 0; {% endif %}" class="table table-striped" id="kamper">
                     <colgroup>
                         <col id="kampstart"/>
+                        <col id="kampslutt" style="display: none;"/>
                         <col id="hjemmelag"/>
                         <col id="strek"/>
                         <col id="bortelag"/>
@@ -188,6 +195,7 @@
                     <thead>
                     <tr>
                         <th rowspan="2">Kampstart</th>
+                        <th rowspan="2">Kampslutt</th>
                         <th rowspan="2">Hjemmelag</th>
                         <th rowspan="2">–</th>
                         <th rowspan="2">bortelag</th>
@@ -212,6 +220,7 @@
                     {% for kamp in kamper %}
                     <tr>
                         <td>{{ kamp.starttid|date("H:i") }}</td>
+                        <td>{{ kamp.sluttid|date("H:i") }}</td>
                         <td>{{ kamp.hjemmelag }}</td><td> – </td><td>{{ kamp.bortelag }}</td>
                         <td>{{ kamp.avdeling }}</td>
                         <td>{{ kamp.hjemmegarderobe }}</td>
@@ -223,11 +232,13 @@
                 {% endblock %}
                 {% if not kamper %}
                 <h3 class="text-center">Det er ingen håndballkamper
-                    {% if sammeDag %}
-                        i dag.
-                    {% else %}
-                        {{ dato|day('nob', 'f') }} {{ dato|date("d.m.Y") }}.
-                    {% endif %}</h3>
+                    <script>
+                        if (sameDay) {
+                            document.write("i dag.");
+                        } else {
+                            document.write("{{ dato|day('nob', 'f') }} {{ dato|date("d.m.Y") }}.");
+                        }
+                    </script></h3>
                 {% endif %}
             </div>
         </div>
