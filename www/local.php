@@ -40,5 +40,10 @@ if (basename($_SERVER['SCRIPT_FILENAME']) == basename(__FILE__)) {
 define('OUTSIDE_WEBROOT', realpath(__DIR__ . '/' .
     /* Please write the path to your 'infoscreen_outside_web' folder, relative to
      * this file. Don't include the trailing slash. */
-    '../../httpd.private/infoscreen_outside_web'
+    '../private'
 ));
+
+/**
+ * Timezone to be used. See the available timezones at <http://php.net/manual/en/timezones.php>
+ */
+date_default_timezone_set("Europe/Oslo");
