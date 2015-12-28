@@ -56,10 +56,13 @@ $matchDate = new DateTime($matchDateString);
 // Set the time to 00:00 (because we only care about the date)
 $matchDate->modify('midnight');
 
-// One cachefile per setting, cache is validated if it's newer than last configuration change
+// One cachefile per setting, cache is validated if it's newer than last configuration change and last friday (to catch any changes)
 $cacheFile = new Cache(
     "banedagbok_{$matchDateName}.html",
-    filemtime(CONFIGDIR . '/matchdates.ini')
+    max(
+        filemtime(CONFIGDIR . '/matchdates.ini'),
+        strtotime("-1 week friday")
+    )
 );
 try {
     // Perform an additional check on the cache validity
@@ -93,14 +96,13 @@ $url = "https://www.handball.no/AjaxData/SortedMatchesForVenue?fom={$urlMatchDat
 // Lagre og skriv ut URL
 $cacheFile->write($url);
 $cacheFile->enableBrowserCaching();
-die($url . " nytt");
 // Download
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
 $extDocument = curl_exec($ch);
-
-if (!$extDocument) {
+$extStatusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+if (!$extDocument || $extStatusCode != 200) {
     throw new \RuntimeException('Failed to fetch external document: ' . curl_error($ch));
 }
 curl_close($ch);
@@ -108,70 +110,72 @@ curl_close($ch);
 $extDocument = file_get_contents(DATADIR . '/handballnedlasting.html');
 $matchDate = new DateTime('sunday');*/
 
-$document = new \DOMDocument();
-libxml_use_internal_errors(true);
-@$document->loadHTML($extDocument);
-unset($extDocument);
-$table = $document->getElementsByTagName('table')->item(0);
-
-if (! $table instanceof \DOMElement) {throw new \RuntimeException('getElementsByTagName should return elements');}
-$extTable = $table->getElementsByTagName('tr');
 $matches = [];
 
+// Are there any matches?
+if (!mb_ereg("ingen kamper", $extDocument))  {
+    $document = new \DOMDocument();
+    libxml_use_internal_errors(true);
+    @$document->loadHTML($extDocument);
+    unset($extDocument);  // external document might be large, so release memory explicitly
+    $table = $document->getElementsByTagName('table')->item(0)->getElementsByTagName('tbody')->item(0);
+
+    if (!$table instanceof \DOMElement) {
+        throw new \RuntimeException('Element not found, has the website changed?');
+    }
+    $extTable = $table->getElementsByTagName('tr');
+
 // Enkel klasse som representerer en enkelt håndballkamp.
-class Kamp
-{
-    public $starttid;
-    public $hjemmelag;
-    public $bortelag;
-    public $avdeling;
-    public $hjemmegarderobe;
-    public $bortegarderobe;
-}
+    class Kamp
+    {
+        public $starttid;
+        public $sluttid;
+        public $hjemmelag;
+        public $bortelag;
+        public $avdeling;
+        public $hjemmegarderobe;
+        public $bortegarderobe;
+    }
 
 // Foreach row in table
-foreach ($extTable as $row) {
-    if (! $row instanceof \DOMElement) {
-        throw new \RuntimeException('DOMElement expected');
+    foreach ($extTable as $row) {
+        if (!$row instanceof \DOMElement) {
+            throw new \RuntimeException('DOMElement expected');
+        }
+
+        $rowTd = $row->getElementsByTagName('td');
+        $rawTime = mb_split("-", trim($rowTd->item(2)->textContent));
+
+        $rowA = $row->getElementsByTagName('a');
+        $rawTurnering = trim($rowA->item(0)->textContent);
+        $rawHjemme = trim($rowA->item(3)->textContent);
+        $rawBorte = trim($rowA->item(4)->textContent);
+
+        $thisMatch = new Kamp();
+        $thisMatch->starttid = DateTime::createFromFormat('H:i', $rawTime[0]);
+        $thisMatch->sluttid = DateTime::createFromFormat('H:i', $rawTime[1]);
+        $thisMatch->hjemmelag = $rawHjemme;
+        $thisMatch->bortelag = $rawBorte;
+
+        // Erstatt "divisjon" med "div"
+        $division = mb_eregi_replace('divisjon', 'div', $rawTurnering);
+        // Fjern informasjon om avdeling
+        $division = mb_eregi_replace(' avd\.? \d+', '', $division);
+        // Legg til mellomrom mellom kjønn og alder
+        $division = mb_eregi_replace('([JG])(\d+)', '\1 \2', $division);
+        $thisMatch->avdeling = $division;
+
+        if (count($matches) % 2 == 0) {
+            $thisMatch->hjemmegarderobe = 'A';
+            $thisMatch->bortegarderobe = 'C';
+        } else {
+            $thisMatch->hjemmegarderobe = 'B';
+            $thisMatch->bortegarderobe = 'D';
+        }
+
+        $matches[] = $thisMatch;
     }
-
-    if ($row->hasAttribute('class') && $row->getAttribute('class') == 'info info-custom') {
-        // This is the header, skip
-        continue;
-    }
-
-    $rowTd = $row->getElementsByTagName('td');
-    $rawTime = trim($rowTd->item(1)->textContent);
-
-    $rowA = $row->getElementsByTagName('a');
-    $rawTurnering = trim($rowA->item(1)->textContent);
-    $rawHjemme = trim($rowA->item(2)->textContent);
-    $rawBorte = trim($rowA->item(3)->textContent);
-
-    $thisMatch = new Kamp();
-    $thisMatch->starttid = DateTime::createFromFormat('H:i', $rawTime);
-    $thisMatch->hjemmelag = $rawHjemme;
-    $thisMatch->bortelag = $rawBorte;
-
-    // Erstatt "divisjon" med "div"
-    $division = mb_eregi_replace('divisjon', 'div', $rawTurnering);
-    // Fjern informasjon om avdeling
-    $division = mb_eregi_replace(' avd\.? \d+', '', $division);
-    // Legg til mellomrom mellom kjønn og alder
-    $division = mb_eregi_replace('([JG])(\d+)', '\1 \2', $division);
-    $thisMatch->avdeling = $division;
-
-    if (count($matches) % 2 == 0) {
-        $thisMatch->hjemmegarderobe = 'A';
-        $thisMatch->bortegarderobe = 'C';
-    } else {
-        $thisMatch->hjemmegarderobe = 'B';
-        $thisMatch->bortegarderobe = 'D';
-    }
-
-    $matches[] = $thisMatch;
 }
-
 
 $twig = Template::init();
 
@@ -182,6 +186,4 @@ $output = $twig->render(
         'dato' => $matchDate,
     ]);
 
-$cacheFile->write($output);
-$cacheFile->enableBrowserCaching();
-echo $output;
+$cacheFile->writeAndOutput($output);
