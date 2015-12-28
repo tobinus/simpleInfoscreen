@@ -444,7 +444,7 @@ abstract class AbstractSettings
 
                 case 'date':
                 case 'datetime':
-                    if (!strtotime($value)) {
+                    if (strtotime($value) === false) {
                          throw new \InvalidArgumentException
                          ("date was be in a format accepted by strtotime(), but it was \"$value\"");
                     }
