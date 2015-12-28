@@ -240,13 +240,19 @@ class Cache
      * @param string $input The content to populate the cache with.
      * @return int Number of bytes written to the cache file, or false if it failed.
      */
-    public function write($input)
+    public function write($input, $ignoreErrors = false)
     {
+        global $ERROR_HAS_OCCURRED;
         if (empty($input)) {
             throw new InvalidArgumentException('Input cannot be empty');
         }
+        if (!$ignoreErrors && $ERROR_HAS_OCCURRED) {
+            throw new \RuntimeException('An error has already occurred, let\'s not cache that error');
+        }
         unset($this->isReadable);
         unset($this->isFresh);
+        unset($this->modificationTime);
+        unset($this->etag);
         return file_put_contents($this->filepath, $input, LOCK_EX);
     }
 
@@ -334,6 +340,21 @@ class Cache
             header("HTTP/1.1 304 Not Modified");
         } else {
             throw new \RuntimeException('The browser cache is stale and cannot be used (unless forced)');
+        }
+    }
+
+    /**
+     * Writes $input to cachefile, and prints it out to the browser.
+     * @param $input string The content which should be saved and output
+     * @see write()
+     */
+    public function writeAndOutput($input) {
+        try {
+            $this->write($input);
+            $this->enableBrowserCaching();
+        } finally {
+            // output the page, even if the cache fails to be written to
+            echo $input;
         }
     }
 }

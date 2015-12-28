@@ -10,6 +10,12 @@ namespace tobinus\ErrorHandler;
 
 define('LOG_FILENAME', DATADIR . '/error.log');
 
+/**
+ * Flag indicating whether an error has occurred yet.
+ * @global bool $ERROR_HAS_OCCURRED
+ */
+$ERROR_HAS_OCCURRED = false;
+
  /**
  * Error handler, passes flow over the exception logger with new ErrorException.
  */
@@ -62,8 +68,9 @@ function getReadableSeverity( $severity)
  */
 function log_exception( \Exception $e )
 {
-    global $PRODUCTION, $previousErrorHandler;
+    global $PRODUCTION, $previousErrorHandler, $ERROR_HAS_OCCURRED;
 
+    $ERROR_HAS_OCCURRED = true;
 
     if ($e instanceof \ErrorException) {
         // Use severity
