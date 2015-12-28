@@ -39,31 +39,43 @@ use \Exception;
 require_once 'prepend.php';
 require_once INCDIR . '/include.php';
 use \tobinus\ErrorHandler as err;
-
 $matchDates = new MatchDates();
 $matchDateName = !empty($_GET['t']) ? $_GET['t'] : 'default';
 
 
-// Set matchdate to first Sunday (or current day, if it's Sunday)
+// Look up in configuration file for the correct date
 try {
-    $matchDate = $matchDates->getDate($matchDateName);
+    $matchDateString = $matchDates->getDate($matchDateName);
 } catch (\Exception $e) {
     // Given date was not found
-    $matchDate = new DateTime('sunday');
     $matchDateName = 'default';
+    $matchDateString = 'sunday';
 }
+$matchDate = new DateTime($matchDateString);
+
+// Set the time to 00:00 (because we only care about the date)
 $matchDate->modify('midnight');
 
-// One cachefile per setting, stale if it's from yesterday or config file was changed
+// One cachefile per setting, cache is validated if it's newer than last configuration change
 $cacheFile = new Cache(
     "banedagbok_{$matchDateName}.html",
-    max(
-        filemtime(CONFIGDIR . '/matchdates.ini'),
-        strtotime('today')
-    )
+    filemtime(CONFIGDIR . '/matchdates.ini')
 );
 try {
+    // Perform an additional check on the cache validity
+    // The cache is invalid if the resulting date from new DateTime() is different now than it was when the cache was created
+    // What was the evaluated date back when the cache was created?
+    $cacheTime = "@" . $cacheFile->getModificationTime();  // get cache creation time
+    $oldMatchDate = new DateTime($cacheTime);  // start with the cache time
+    $oldMatchDate->modify($matchDateString)->modify("midnight");  // apply the match date to the cache date, and set to midnight
+    // Is there a difference?
+    if ($days = $matchDate->diff($oldMatchDate, true)->days) {
+        // Yes
+        throw new StaleCache();
+    }
+    // Try to use the cache
     $cacheFile->output();
+    // Cache was used successfully
     die();
 } catch (\RuntimeException $e) {
     // cache is not usable, generate…
@@ -76,9 +88,12 @@ if (!function_exists('curl_init')) {
 }
 
 // Generate part of URL
-$urlMatchDate = $matchDate->format('d.m.Y');
-$url = "https://wp.nif.no/PageMatchAvansert.aspx?fromDate=${urlMatchDate}&toDate=${urlMatchDate}&venueId=2678&autosearch=true&showsearchpane=false&showinfopane=false&showpager=false&pagesize=500&design=4&fontsize=2&nourl=true&sfid=372&design=4";
-//
+$urlMatchDate = $matchDate->format('m.d.Y');
+$url = "https://www.handball.no/AjaxData/SortedMatchesForVenue?fom={$urlMatchDate}&tom={$urlMatchDate}&id=4080";
+// Lagre og skriv ut URL
+$cacheFile->write($url);
+$cacheFile->enableBrowserCaching();
+die($url . " nytt");
 // Download
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
