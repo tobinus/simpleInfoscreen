@@ -107,14 +107,8 @@ class Scheduler
         }
         // A change will have happened last Saturday or last Monday
         $weekday = intval(date('w', $this->time));
-        $mostRecentSaturday =
-            ($weekday != 6)     // is it Saturday?
-                ? strtotime('last Saturday midnight', $this->time) // no, find last Saturday
-                : strtotime('today', $this->time); // yes, return midnight
-        $mostRecentMonday =
-            ($weekday != 1)    // is it Monday?
-                ? strtotime('last Monday midnight', $this->time) // no, find last monday
-                : strtotime('today', $this->time); // yes, return this day on midnight
+        $mostRecentSaturday = strtotime('-1 week saturday midnight', $this->time);
+        $mostRecentMonday = strtotime('-1 week monday midnight', $this->time);
         return max($mostRecentSaturday, $mostRecentMonday);
     }
 }
