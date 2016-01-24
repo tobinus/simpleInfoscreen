@@ -86,7 +86,6 @@ var slideDone = false;
 var loadingDone = false;
 function nextSlide() {
     if (!mustReload) {
-        loadTimeout("next");
         $( "#next" ).one( "load" , nextSlideOnLoad)
         // Actually start loading the next slide
                     .attr( 'src' , slideShow.next().url);
@@ -177,8 +176,9 @@ function loadTimeout(id)
     {
         console.warn(slideShow.current().url + " hasn't loaded, even after "+SLIDE_LOAD_TIMEOUT+" seconds. Moving on.");
         // Try next URL. The "on load"-trigger will happen for this one instead.
-        $( "#" + id ).attr( 'src' , slideShow.next().url);
-
+        var frame = $("#" + id);
+        loadTimeout(id);
+        frame.attr( 'src' , slideShow.next().url);
     }, SLIDE_LOAD_TIMEOUT * 1000);
 }
 
