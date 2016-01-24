@@ -1,4 +1,4 @@
 *.idea
 private/data/error.log
-private/data/html_cache/
-private/data/template_cache/
+private/data/html_cache/*
+private/data/template_cache/*
