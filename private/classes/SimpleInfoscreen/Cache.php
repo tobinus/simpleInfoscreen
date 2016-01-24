@@ -253,7 +253,15 @@ class Cache
         unset($this->isFresh);
         unset($this->modificationTime);
         unset($this->etag);
-        return file_put_contents($this->filepath, $input, LOCK_EX);
+        if (!file_exists(dirname($this->filepath))) {
+            // Try to create directory if it doesn't exist yet
+            mkdir($this->filepath, 0770);
+        }
+        // Make an atomic update (assuming Unix system)
+        $tmpFilePath = $this->filepath . ".tmp";
+        $result = file_put_contents($tmpFilePath, $input, LOCK_EX);
+        rename($tmpFilePath, $this->filepath);
+        return $result;
     }
 
     /**
