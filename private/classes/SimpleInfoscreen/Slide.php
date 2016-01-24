@@ -147,12 +147,12 @@ class Slide
      */
     public function setLoadingTime($newLoadingTime)
     {
-        if (($newLoadingTime = intval($newLoadingTime)) !== 0 && $newLoadingTime > 0)
+        if (($newLoadingTime = intval($newLoadingTime)) >= 0)
         {
             $this->loadingTime = $newLoadingTime;
         } else
         {
-            throw new \InvalidArgumentException('New loading time must be a positive integer, was '.$newLoadingTime);
+            throw new \InvalidArgumentException('New loading time must be a non-negative integer, was '.$newLoadingTime);
         }
     }
 }

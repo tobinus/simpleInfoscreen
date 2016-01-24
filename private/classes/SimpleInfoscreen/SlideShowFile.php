@@ -250,8 +250,8 @@ class SlideShowFile extends AbstractSettings implements \IteratorAggregate
             throw new \InvalidArgumentException("The following entries were not recognized, perhaps they are misspelled: ".
             json_encode($difference));
         }
-        set_if_empty($value['duration'], 10);
-        set_if_empty($value['loadingTime'], 5);
+        set_unless_defined($value['duration'], 10);
+        set_unless_defined($value['loadingTime'], 5);
 
         $url = $value['url'];
         $duration = intval($value['duration']);
