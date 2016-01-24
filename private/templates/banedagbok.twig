@@ -78,9 +78,9 @@
 
                 var rows = $( '#kamper' ).find( 'tbody' ).children();
 
-                rows.find(isDone).removeClass().addClass('text-muted');
-                rows.find(isInProgress).removeClass().addClass('bg-primary');
-                rows.find(isNotStarted).removeClass();  // not really needed; they will never get a class in the first place
+                rows.filter(isDone).removeClass().addClass('text-muted');
+                rows.filter(isInProgress).removeClass().addClass('bg-primary');
+                rows.filter(isNotStarted).removeClass();  // not really needed; they will never get a class in the first place
 
             }
 
@@ -195,7 +195,7 @@
                     <thead>
                     <tr>
                         <th rowspan="2">Kampstart</th>
-                        <th rowspan="2">Kampslutt</th>
+                        <th rowspan="2" class="hide">Kampslutt</th>
                         <th rowspan="2">Hjemmelag</th>
                         <th rowspan="2">–</th>
                         <th rowspan="2">bortelag</th>
@@ -220,7 +220,7 @@
                     {% for kamp in kamper %}
                     <tr>
                         <td>{{ kamp.starttid|date("H:i") }}</td>
-                        <td>{{ kamp.sluttid|date("H:i") }}</td>
+                        <td class="hide">{{ kamp.sluttid|date("H:i") }}</td>
                         <td>{{ kamp.hjemmelag }}</td><td> – </td><td>{{ kamp.bortelag }}</td>
                         <td>{{ kamp.avdeling }}</td>
                         <td>{{ kamp.hjemmegarderobe }}</td>
