@@ -61,7 +61,8 @@ $cacheFile = new Cache(
     "banedagbok_{$matchDateName}.html",
     max(
         filemtime(CONFIGDIR . '/matchdates.ini'),
-        strtotime("-1 week friday")
+        strtotime("-1 week friday"),
+        filemtime(__FILE__)
     )
 );
 try {
@@ -167,9 +168,9 @@ if (!mb_ereg("ingen kamper", $extDocument))  {
 
         if (count($matches) % 2 == 0) {
             $thisMatch->hjemmegarderobe = 'A';
-            $thisMatch->bortegarderobe = 'C';
+            $thisMatch->bortegarderobe = 'B';
         } else {
-            $thisMatch->hjemmegarderobe = 'B';
+            $thisMatch->hjemmegarderobe = 'C';
             $thisMatch->bortegarderobe = 'D';
         }
 
