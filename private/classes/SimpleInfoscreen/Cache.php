@@ -255,7 +255,7 @@ class Cache
         unset($this->etag);
         if (!file_exists(dirname($this->filepath))) {
             // Try to create directory if it doesn't exist yet
-            mkdir($this->filepath, 0770);
+            mkdir(dirname($this->filepath), 0770);
         }
         // Make an atomic update (assuming Unix system)
         $tmpFilePath = $this->filepath . ".tmp";
