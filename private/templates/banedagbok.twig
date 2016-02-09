@@ -4,7 +4,8 @@
     <head>
         {% block head %}
         <title>Banedagbok</title>
-        <meta charset="UTF-8">
+        <meta charset="UTF-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="js/jquery-2.1.4.js"></script>
 
         <script>
@@ -133,6 +134,34 @@
                 animation: blink 4s step-start 0s infinite;
                 -webkit-animation: blink 4s step-start 0s infinite;
             }
+
+            #icon {
+                font-size: 115px;
+            }
+            @media screen and (max-device-width: 1600px) {
+                h2 {
+                    font-size: 55px;
+                }
+
+                body {
+                    font-size: 26px;
+                }
+
+                #icon {
+                    font-size: 85px;
+                }
+            }
+            @media screen and (max-device-width: 1000px) {
+                h2 {
+                    font-size: 35px;
+                }
+                body {
+                    font-size: 20px;
+                }
+                #icon {
+                    font-size: 55px;
+                }
+            }
             /*
             body {
                 font-size: 2em;
@@ -152,6 +181,7 @@
                 font-family: "Liberation Sans", sans-serif;
             }
 
+
         </style>
 
         <!-- Latest compiled and minified JavaScript -->
@@ -164,7 +194,7 @@
         {% block header %}
         <div class="row first">
             <div class="col-lg-12 clearfix" style="margin-top:10px">
-                <span class="glyphicon glyphicon-info-sign pull-left text-info" aria-hidden="true" style="font-size: 115px"></span>
+                <span class="glyphicon glyphicon-info-sign pull-left text-info" aria-hidden="true" id="icon"></span>
                 <h2 class="pull-left text-info" style="vertical-align: middle">&nbsp;&nbsp;Håndballkamper i Fethallen</h2>
                 <h2 class="text-muted pull-right" style="vertical-align: middle">
                     <script>
