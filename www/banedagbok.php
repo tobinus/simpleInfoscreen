@@ -160,7 +160,7 @@ if (!mb_ereg("ingen kamper", $extDocument))  {
         // Fjern informasjon om avdeling
         $division = mb_eregi_replace(' avd\.? \d+', '', $division);
         // Legg til mellomrom mellom kjønn og alder
-        $division = mb_eregi_replace('([JG])(\d+)', '\1 \2', $division);
+        $division = mb_eregi_replace('([JG])(\d+)', '\1&nbsp;\2', $division);
         $thisMatch->avdeling = $division;
 
         if (count($matches) % 2 == 0) {
