@@ -66,9 +66,6 @@
             function updateRowAppearance(date)
             {
                 var getTime = ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
-                var oldDate = new Date(date.getTime());
-                oldDate.setHours(oldDate.getHours() - 1);
-                var getOldTime = ('0' + oldDate.getHours()).slice(-2) + ':' + ('0' + oldDate.getMinutes()).slice(-2);
                 var isDone = function (index) {
                     return $(this).find("td").eq(1).text() < getTime;
                 };
@@ -79,16 +76,16 @@
                 var isNotStarted = function (index) {
                     return getTime < $(this).find("td").eq(0).text();
                 };
-                var isOld = function (index) {
-                    return $(this).find("td").eq(1).text() < getOldTime;
-                }
 
                 var rows = $( '#kamper' ).find( 'tbody' ).children();
 
                 // Are there too many rows?
         		if (rows.length >= 6) {
-        		    // Yes, hide the matches that are done
-                    rows.filter(isOld).remove();
+        		    // Yes, hide the matches that are done (except 2)
+        		    doneMatches = rows.filter(isDone);
+        		    if (doneMatches.length >= 3) {
+        		        doneMatches.slice(0, -2).remove();
+        		    }
                     // Refresh list of rows
                     rows = $( '#kamper' ).find( 'tbody' ).children();
         		} 
