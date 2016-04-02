@@ -79,7 +79,15 @@
 
                 var rows = $( '#kamper' ).find( 'tbody' ).children();
 
-                rows.filter(isDone).removeClass().addClass('text-muted');
+                // Are there too many rows?
+        		if (rows.length >= 6) {
+        		    // Yes, hide the matches that are done
+                    rows.filter(isDone).remove();
+                    // Refresh list of rows
+                    rows = $( '#kamper' ).find( 'tbody' ).children();
+        		} else {
+        		    rows.filter(isDone).removeClass().addClass('text-muted');
+        		}
                 rows.filter(isInProgress).removeClass().addClass('bg-primary');
                 rows.filter(isNotStarted).removeClass();  // not really needed; they will never get a class in the first place
 
