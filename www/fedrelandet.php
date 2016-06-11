@@ -65,11 +65,12 @@ try {
         die();
     }
 
-    $url = "http://www.fotball.no/fotballdata/Anlegg/Hjem/?fiksId=11978";
+    $url = "https://www.fotball.no/fotballdata/Anlegg/Hjem/?fiksId=11978";
 
     // Download
     $ch = curl_init($url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
     $extDocument = curl_exec($ch);
 
@@ -86,37 +87,25 @@ try {
 $document = new \DOMDocument();
 libxml_use_internal_errors(true);
 @$document->loadHTML($extDocument);
-$tables = $document->getElementsByTagName('table');
-// get the right table
-$eventTable = null;
-if ($tables->length == 0) {
-    trigger_error("No tables found on the external website", E_USER_ERROR);
+$div_match = $document->getElementById('matches');
+if ($div_match === null) {
+    trigger_error('No element with ID "matches" was found on fotball.no - the page structure may have changed', E_USER_ERROR);
 }
-foreach ($tables as $table) {
-    if ($table instanceof \DOMElement && $table->hasAttribute('class') && $table->getAttribute('class') == 'eventTable') {
-        // Are there any events?
-        if ($table->childNodes->length === 0) {
-            // Nope!
-            $eventTable = [];
-            break;
-        }
-        // Set eventTable to the list of rows in the second table body (thus skipping the headings)
-        $tableBodies = $table->getElementsByTagName('tbody');
-        if ($tableBodies->length == 0) {
-            trigger_error('There are no table bodies in the event table on fotball.no - the page structure may have changed', E_USER_ERROR);
-        }
-        $eventTable = $tableBodies->item(0);
-        if ($eventTable instanceof \DOMElement) {
-            $eventTable = $eventTable->getElementsByTagName('tr');
-        } else {
-            trigger_error('Table was not DOMElement - PHP behaviour may have been changed', E_USER_ERROR);
-        }
-
-        break;
+$table = $div_match->getElementsByTagName('table')->item(0);
+if ($table !== null && $table instanceof \DOMElement) {
+    // Set eventTable to the list of rows in the second table body (thus skipping the headings)
+    $tableBodies = $table->getElementsByTagName('tbody');
+    if ($tableBodies->length == 0) {
+        trigger_error('There are no table bodies in the matches table on fotball.no - the page structure may have changed', E_USER_ERROR);
     }
-}
-if ($eventTable === null) {
-    trigger_error("table with class eventTable was not found on the external website, the page structure may have changed", E_USER_ERROR);
+    $eventTable = $tableBodies->item(0);
+    if ($eventTable instanceof \DOMElement) {
+        $eventTable = $eventTable->getElementsByTagName('tr');
+    } else {
+        trigger_error('Tablebody was not DOMElement - PHP behaviour may have been changed', E_USER_ERROR);
+    }
+} else {
+    trigger_error("'#matches table' was not found on the external website, the page structure may have changed", E_USER_ERROR);
     die();
 }
 
@@ -148,25 +137,24 @@ foreach ($eventTable as $event) {
     if (!($event instanceof \DOMElement)) {
         trigger_error('Table row was not instance of DOMElement, PHP behaviour may have changed', E_USER_ERROR);
     }
-    $timeNode = $event->getElementsByTagName('span')->item(0);
+    $timeNode = $event->getElementsByTagName('td')->item(2);
     $otherNodes = $event->getElementsByTagName('a');
 
     // Transform from array to Kamp object
     $thisMatch = new Kamp();
 
-    $thisMatch->starttid = DateTime::createFromFormat(' H:i', $timeNode->textContent);
-    $lagNode = mb_split(' - ', $otherNodes->item(0)->textContent);
+    $thisMatch->starttid = DateTime::createFromFormat('H:i', $timeNode->textContent);
 
-    $thisMatch->hjemmelag = $lagNode[0];
-    $thisMatch->bortelag = $lagNode[1];
+    $thisMatch->hjemmelag = $otherNodes->item(0)->textContent;
+    $thisMatch->bortelag = $otherNodes->item(2)->textContent;
 
 
-    $thisMatch->avdeling = $otherNodes->item(1)->textContent;
+    $thisMatch->avdeling = $otherNodes->item(4)->textContent;
     $thisMatch->avdeling = mb_ereg_replace(' avd \d+', '', $thisMatch->avdeling);
     $thisMatch->avdeling = mb_eregi_replace('([JG])(\d+)', '\1 \2', $thisMatch->avdeling);
 
 
-    $thisMatch->bane = str_replace($needles, $replacements, mb_convert_case($otherNodes->item(2)->textContent, MB_CASE_TITLE));
+    $thisMatch->bane = str_replace($needles, $replacements, mb_convert_case($otherNodes->item(3)->textContent, MB_CASE_TITLE));
     $matches[] = $thisMatch;
 }
 
