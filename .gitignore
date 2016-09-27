@@ -5,3 +5,4 @@ private/data/template_cache/*
 !private/data/html_cache/.keep
 !private/data/template_cache/.keep
 
+private/config/*.ini
