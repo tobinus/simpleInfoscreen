@@ -34,12 +34,15 @@ if (basename($_SERVER['SCRIPT_FILENAME']) == basename(__FILE__)) {
 }
 
 /**
- * Pathname to the `infoscreen_outside_web`-folder, which should be placed
+ * Pathname to the `private`-folder, which should be placed
  * outside of the web root. @global
  */
 define('OUTSIDE_WEBROOT', realpath(__DIR__ . '/' .
-    /* Please write the path to your 'infoscreen_outside_web' folder, relative to
-     * this file. Don't include the trailing slash. */
+    /* Please write the path to your 'private' folder, relative to
+     * this file. Don't include the trailing slash.
+     * Example:
+    'relative/path/to/private'
+     */
     '../private'
 ));
 
