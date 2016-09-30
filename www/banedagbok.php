@@ -34,6 +34,7 @@ THE SOFTWARE.
 namespace tobinus\SimpleInfoscreen;
 
 use \DateTime;
+use \DateTimeZone;
 use \Exception;
 require_once 'prepend.php';
 require_once INCDIR . '/include.php';
@@ -70,9 +71,10 @@ try {
     // What was the evaluated date back when the cache was created?
     $cacheTime = "@" . ($cacheFile->getModificationTime() - 15);  // get cache creation time, subtract 15 just to be sure we're not using an old cache
     $oldMatchDate = new DateTime($cacheTime);  // start with the cache time
+    $oldMatchDate->setTimeZone(new DateTimeZone("Europe/Oslo"));
     $oldMatchDate->modify($matchDateString)->modify("midnight");  // apply the match date to the cache date, and set to midnight
     // Is there a difference?
-    if ($matchDate->diff($oldMatchDate, true)->h) {
+    if ($matchDate->diff($oldMatchDate, true)->h > 0) {
         // Yes
         throw new StaleCache();
     }
