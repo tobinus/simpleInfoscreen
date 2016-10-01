@@ -26,15 +26,15 @@ THE SOFTWARE.
  * Show what matches will be played today (or any given day), by parsing a webpage
  * from handball.no.
  *
- * Limitation: Only one weekday can be in use
  * @author Thorben Dahl <thorben@sjostrom.no>
- * @copyright Thorben Dahl 2015
+ * @copyright Thorben Dahl 2016
  * @license The MIT License (MIT)
  * @package tobinus\SimpleInfoscreen
  */
 namespace tobinus\SimpleInfoscreen;
 
 use \DateTime;
+use \DateTimeZone;
 use \Exception;
 require_once 'prepend.php';
 require_once INCDIR . '/include.php';
@@ -69,11 +69,12 @@ try {
     // Perform an additional check on the cache validity
     // The cache is invalid if the resulting date from new DateTime() is different now than it was when the cache was created
     // What was the evaluated date back when the cache was created?
-    $cacheTime = "@" . $cacheFile->getModificationTime();  // get cache creation time
+    $cacheTime = "@" . ($cacheFile->getModificationTime() - 15);  // get cache creation time, subtract 15 just to be sure we're not using an old cache
     $oldMatchDate = new DateTime($cacheTime);  // start with the cache time
+    $oldMatchDate->setTimeZone(new DateTimeZone("Europe/Oslo"));
     $oldMatchDate->modify($matchDateString)->modify("midnight");  // apply the match date to the cache date, and set to midnight
     // Is there a difference?
-    if ($days = $matchDate->diff($oldMatchDate, true)->days) {
+    if ($matchDate->diff($oldMatchDate, true)->h > 0) {
         // Yes
         throw new StaleCache();
     }

@@ -26,7 +26,7 @@ THE SOFTWARE.
 /**
  * A class that lets you manipulate a cache file.
  * @author Thorben Werner Sjøstrøm Dahl <thorben@sjostrom.no>
- * @copyright Thorben Werner Sjøstrøm Dahl 2015
+ * @copyright Thorben Werner Sjøstrøm Dahl 2016
  * @license http://opensource.org/licenses/MIT The MIT License
  * @package tobinus\SimpleInfoscreen
  */
@@ -304,7 +304,7 @@ class Cache
         if (!empty($this->modificationTime) && !$reload) {
             return $this->modificationTime;
         } else if ($this->exists()) {
-            $this->modificationTime = filemtime($this->filepath);
+            $this->modificationTime = intval(filemtime($this->filepath));
             return $this->modificationTime;
         } else {
             throw new CacheDoesNotExist('Cannot get modification time when the cache file does not exist');
