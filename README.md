@@ -34,13 +34,11 @@ There are a few requirements for the environment.
 8.  Move and rename the web folder (assuming you're back in the simpleInfoscreen folder): `mv web /web_root/desired/url`
 9.  Edit `local.php` so that the relative path to the private folder is correct.
 10. Edit `local.php` so the timezone is correct.
-11. Change the owner of the `local` folder so that whichever user the PHP code will run as, is the owner. Example:
-    `sudo chown -R www-data: local`
-12. Ensure no other file or folder is owned by the user PHP runs as. This is a security precaution, so that even if
+11. Ensure no other file or folder is owned by the user PHP runs as. This is a security precaution, so that even if
     an attacker gains control of the PHP application, he or she will not be able to do damage to the rest of the 
     server. Ideally, this application should run completely alone, in a Virtual Machine, since security was not
     a priority during development.
-13. You should be all set now. Try navigating to the web page in a browser.
+12. You should be all set now. Try navigating to the web page in a browser.
 
 ## Setting up the infoscreens themselves
 
@@ -52,3 +50,36 @@ we recommend using Chromium/Chrome for the smoothest animations. Search for
 
 Raspberry Pi 2 and above works fine as a computer, if you haven't got
 one yet.
+
+## How does simpleInfoscreen work?
+
+First off, you can define **slideshows** which consist of one or multiple 
+**slides**, each of which is a URL. Thus, a slide equals a webpage.
+Those web pages can either be hosted inside simpleInfoscreen by putting
+them in the `local` folder, or they can be hosted somewhere else
+(for example showing a Twitter feed, departure times for a local bus
+stop or the local weather forecast).
+
+Each slide also has two attributes. *Loading time* is the time given to
+preload the page. The reason for this is that web pages take some time to
+load, so instead of transitioning to a web page which isn't loaded yet,
+the page will be loaded in the background and the transition won't happen
+before it is 100% loaded. The loading time determines how many seconds
+in advance the page should be loaded.
+
+The other attribute is the *duration*, which simply determines how long
+that slide should be displayed before transitioning to the next slide.
+
+Slides in one slideshow can be reused in other slideshows; this is
+described in great detail inside the `slideshows.ini` configuration file.
+
+Secondly, there are **infoscreens**. They are your entrance to view
+the slideshows, by accessing http://example.com/path-to-infoscreen/?i=INFOSCREEN\_NAME.
+By setting different screens to use different URLs, you can have different
+content on them.
+
+Each infoscreen has its own settings, which are based on the default section
+in `settings.ini`. This includes a setting about which slideshow(s) to use,
+thus you can have different slideshows on different infoscreens.
+
+
