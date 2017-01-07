@@ -66,7 +66,7 @@ function getReadableSeverity( $severity)
 /**
  * Uncaught exception handler.
  */
-function log_exception( \Exception $e )
+function log_exception( $e )
 {
     global $PRODUCTION, $previousErrorHandler, $ERROR_HAS_OCCURRED;
 
