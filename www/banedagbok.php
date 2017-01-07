@@ -74,7 +74,7 @@ try {
     $oldMatchDate->setTimeZone(new DateTimeZone("Europe/Oslo"));
     $oldMatchDate->modify($matchDateString)->modify("midnight");  // apply the match date to the cache date, and set to midnight
     // Is there a difference?
-    if ($matchDate->diff($oldMatchDate, true)->h > 0) {
+    if ($matchDate != $oldMatchDate) {
         // Yes
         throw new StaleCache();
     }
