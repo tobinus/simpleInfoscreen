@@ -106,7 +106,7 @@ function log_exception( $e )
     }
 
     if (!$headersSent && $isFatal) {
-        $resetScript = '<script>setTimeout(function () {location.reload(true);}, 1*60*1000);</script>';
+        $resetScript = '<script>setTimeout(function () {location.reload(true);}, 30*60*1000);</script>';
     } else {
         $resetScript = '';
     }

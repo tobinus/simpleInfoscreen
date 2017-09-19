@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vi er straks tilbake</title>
-    <script>setTimeout(function () {location.reload(true);}, 1*60*1000);</script>
+    <script>setTimeout(function () {location.reload(true);}, 30*60*1000);</script>
 
     <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="<?=$url?>/bootstrap/css/bootstrap.css">
