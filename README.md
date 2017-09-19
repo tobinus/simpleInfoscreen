@@ -18,6 +18,7 @@ There are a few requirements for the environment.
 * Apache server is set up
 * PHP Curl support
 * PHP XML support
+* PHP Multibyte String support
 
 1.  Clone this repository, by running `git clone https://github.com/tobinus/simpleInfoscreen.git`.
 2.  Change into the new folder: `cd simpleInfoscreen`
