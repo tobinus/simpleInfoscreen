@@ -94,7 +94,7 @@ if (!function_exists('curl_init')) {
 
 // Generate part of URL
 $urlMatchDate = $matchDate->format('m.d.Y');
-$url = "https://www.handball.no/AjaxData/SortedMatchesForVenue?fom={$urlMatchDate}&tom={$urlMatchDate}&id=4080";
+$url = "https://www.handball.no/AjaxData/SortedMatchesReservationsForVenue?fom={$urlMatchDate}&tom={$urlMatchDate}&id=4080";
 // Download
 $ch = curl_init($url);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
