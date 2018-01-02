@@ -54,7 +54,7 @@ $venues = array(
         'displaySport' => false,
     ),
     'eika' => array(
-        'title' => 'Kamper i EIKA Fet Arena',
+        'title' => 'Kamper i Eika Fet Arena',
         'id' => 33607,
         'displayChangingRooms' => true,
         'displayField' => true,
@@ -181,15 +181,17 @@ foreach ($schedule as $row) {
     // Fjern informasjon om avdeling
     $division = mb_eregi_replace('(?: -)? (?:avd(?:\.|eling|)) ?\S+', '', $division);
     // Forkort "Gutter" og "Jenter"
-    $division = mb_eregi_replace('(G)utter |(J)enter ', '\1', $division);
+    $division = mb_eregi_replace('(G)utter |(J)enter ', '\1\2', $division);
     $division = htmlspecialchars($division, ENT_QUOTES | ENT_HTML5, "UTF-8");
     $division = mb_eregi_replace('([^-])serien', '\1&shy;serien', $division);
     $thisMatch->avdeling = $division;
 
     $rawSport = mb_eregi_replace('Fet IL - (\S+).*', '\1', $row['Arrangør']);
-    $rawSport = htmlspecialchars($rawSport, ENT_QUOTES | ENT_HTML5, "UTF-8");
-    $rawSport = mb_eregi_replace('(ball|bandy)', '&hyphen;<br/>\1', $rawSport);
-    $thisMatch->sport = $rawSport;
+    if (mb_eregi('Håndball', $rawSport)) {
+        $thisMatch->sport = 'handball';
+    } elseif (mb_eregi('Innebandy', $rawSport)) {
+        $thisMatch->sport = 'floorball';
+    }
 
     $rawBane = $row['Bane']['Text'];
     $splittedBane = explode(' ', $rawBane);
