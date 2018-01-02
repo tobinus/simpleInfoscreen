@@ -1,9 +1,8 @@
-﻿{% set dagSlutt = kamper ? (kamper|last).sluttid|date("H:i") : "00:00" %}
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
     <head>
         {% block head %}
-        <title>Banedagbok</title>
+        <title>{{ title }}</title>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="js/jquery-2.1.4.js"></script>
@@ -17,16 +16,19 @@
                 var matchDay = new Date("{{ dato|date_modify('midnight')|date("F j, Y") }}");
                 matchDay.setHours(0, 0, 0, 0);
 
-                return today.getTime() == matchDay.getTime();
+                return today.getTime() === matchDay.getTime();
             }();
+            // Debugging
+            sameDay = true;
 
             function getDate() {
+                return new Date(2017, 0, 14, 12, 50, 0);
                 return new Date();
             }
             function updateMinute() {
                 var date = getDate();
                 var minutes = date.getMinutes();
-                if (minutes % 5 == 0) {
+                if (minutes % 5 === 0) {
                     updateRowAppearance(date);
                 }
                 if (minutes < 10) {
@@ -65,26 +67,37 @@
 
             function updateRowAppearance(date)
             {
+                function getStartTime(row) {
+                    {% set startTimeIndex = 0 %}
+                    return $(row).find("td").eq({{ startTimeIndex }}).text();
+                }
+                function getEndTime(row) {
+                    {% set endTimeIndex = startTimeIndex + 1 %}
+                    return $(row).find("td").eq({{ endTimeIndex }}).text();
+                }
+
                 var getTime = ('0' + date.getHours()).slice(-2) + ':' + ('0' + date.getMinutes()).slice(-2);
                 var isDone = function (index) {
-                    return $(this).find("td").eq(1).text() < getTime;
+                    return getEndTime(this) < getTime;
                 };
                 var isInProgress = function (index) {
-                    var cells = $(this).find("td");
-                    return getTime >= cells.eq(0).text() && getTime <= cells.eq(1).text();
+                    return getTime >= getStartTime(this) && getTime <= getEndTime(this);
                 };
                 var isNotStarted = function (index) {
-                    return getTime < $(this).find("td").eq(0).text();
+                    return getTime < getStartTime(this);
                 };
 
                 var rows = $( '#kamper' ).find( 'tbody' ).children();
 
                 // Are there too many rows?
         		if (rows.length >= 6) {
-        		    // Yes, hide the matches that are done (except 2)
-        		    doneMatches = rows.filter(isDone);
-        		    if (doneMatches.length >= 3) {
-        		        doneMatches.slice(0, -2).remove();
+                    doneMatches = rows.filter(isDone);
+        		    // We want to stay at 5 rows
+                    var rowsOverLimit = rows.length - 5;
+                    // Yes, hide the matches that are done (except min 2)
+                    var oldMatchesToKeep = Math.max(2, (doneMatches.length - rowsOverLimit));
+        		    if (doneMatches.length > oldMatchesToKeep) {
+        		        doneMatches.slice(0, -oldMatchesToKeep).remove();
         		    }
                     // Refresh list of rows
                     rows = $( '#kamper' ).find( 'tbody' ).children();
@@ -149,6 +162,10 @@
             #icon {
                 font-size: 115px;
             }
+
+            .sportCell {
+                font-size: 0.5em;
+            }
             @media screen and (max-device-width: 1600px) {
                 h2 {
                     font-size: 52px;
@@ -206,7 +223,7 @@
         <div class="row first">
             <div class="col-lg-12 clearfix" style="margin-top:10px">
                 <span class="glyphicon glyphicon-info-sign pull-left text-info" aria-hidden="true" id="icon"></span>
-                <h2 class="pull-left text-info" style="vertical-align: middle">&nbsp;&nbsp;Håndballkamper i Fethallen</h2>
+                <h2 class="pull-left text-info" style="vertical-align: middle">&nbsp;&nbsp;{{ title }}</h2>
                 <h2 class="text-muted pull-right" style="vertical-align: middle">
                     <script>
                         if (sameDay) {
@@ -226,27 +243,44 @@
                     <colgroup>
                         <col id="kampstart"/>
                         <col id="kampslutt" style="display: none;"/>
+                        {% if displaySport %}
+                        <col id="sport"/>
+                        {% endif %}
+                        {% if displayField %}
+                            <col id="bane"/>
+                        {% endif %}
                         <col id="hjemmelag"/>
                         <col id="strek"/>
                         <col id="bortelag"/>
                         <col id="avdeling"/>
+                        {% if displayChangingRooms %}
                         <col id="hjemmegarderobe"/>
                         <col id="bortegarderobe"/>
+                        {% endif %}
                     </colgroup>
                     <thead>
                     <tr>
                         <th rowspan="2">Kampstart</th>
                         <th rowspan="2" class="hide">Kampslutt</th>
+                        {% if displaySport %}
+                        <th rowspan="2">Idrett</th>
+                        {% endif %}
+                        {% if displayField %}
+                            <th rowspan="2">Bane</th>
+                        {% endif %}
                         <th rowspan="2">Hjemmelag</th>
                         <th rowspan="2">–</th>
                         <th rowspan="2">bortelag</th>
                         <th rowspan="2">Turnering</th>
+                        {% if displayChangingRooms %}
                         <th colspan="2">Garderober</th>
+                        {% endif %}
                     </tr>
                     <tr>
-
+                        {% if displayChangingRooms %}
                         <th>hjemme</th>
                         <th>borte</th>
+                        {% endif %}
                     </tr>
                     </thead>
                     {#{% if kamper %}
@@ -262,17 +296,25 @@
                     <tr>
                         <td>{{ kamp.starttid|date("H:i") }}</td>
                         <td class="hide">{{ kamp.sluttid|date("H:i") }}</td>
-                        <td>{{ kamp.hjemmelag }}</td><td> – </td><td>{{ kamp.bortelag }}</td>
-                        <td>{{ kamp.avdeling }}</td>
-                        <td>{{ kamp.hjemmegarderobe }}</td>
-                        <td>{{ kamp.bortegarderobe }}</td>
+                        {% if displaySport %}
+                            <td class="sportCell">{{ kamp.sport|raw }}</td>
+                        {% endif %}
+                        {% if displayField %}
+                            <td>{{ kamp.bane }}</td>
+                        {% endif %}
+                        <td>{{ kamp.hjemmelag|raw }}</td><td> – </td><td>{{ kamp.bortelag|raw }}</td>
+                        <td>{{ kamp.avdeling|raw }}</td>
+                        {% if displayChangingRooms %}
+                            <td>{{ kamp.hjemmegarderobe }}</td>
+                            <td>{{ kamp.bortegarderobe }}</td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                     </tbody>
                 </table>
                 {% endblock %}
                 {% if not kamper %}
-                <h3 class="text-center">Det er ingen håndballkamper
+                <h3 class="text-center">Det er ingen kamper
                     <script>
                         if (sameDay) {
                             document.write("i dag.");
@@ -286,7 +328,7 @@
         {% block footer %}
             <div class="row" style="position: fixed; bottom: 0; width: 100%; z-index: -1">
                 <div class="col-md-6">
-                    <p class="text-muted"><small>Hentet fra handball.no</small></p>
+                    <p class="text-muted"><small>Hentet fra nif.no</small></p>
                 </div>
                 <div class="col-md-6"></div>
             </div>
