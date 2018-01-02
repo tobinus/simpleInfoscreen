@@ -42,21 +42,31 @@ require_once 'prepend.php';
 require_once INCDIR . '/include.php';
 use \tobinus\ErrorHandler as err;
 
-$DEFAULT_MATCH_DURATION = DateInterval::createFromDateString('1 hour 30 minutes');
+$DEFAULT_MATCH_DURATION = DateInterval::createFromDateString('1 hour 15 minutes');
 
 // Which venue should we use?
+/* Key is what the v GET parameter is matched against. The value is an array with the fields:
+     title: Text shown as title
+     id: venueId from nif.no
+     displayChangingRooms: true to display, false to hide, 'auto' to show when the rooms are assigned successfully.
+     changingRooms: list of changing rooms to use when using simple scheduling (done when only one field is used)
+     displayField: true to display, false to hide, 'auto' to show when there are multiple fields in use
+     displaySport: true to display, false to hide, 'auto' to show when there are multiple sports
+*/
 $venues = array(
     'fethallen' => array(
         'title' => 'Kamper i Fethallen',
         'id' => 4080,
-        'displayChangingRooms' => true,
-        'displayField' => false,
-        'displaySport' => false,
+        'displayChangingRooms' => 'auto',
+        'changingRooms' => ['A', 'B', 'C', 'D'],
+        'displayField' => 'auto',
+        'displaySport' => 'auto',
     ),
     'eika' => array(
         'title' => 'Kamper i Eika Fet Arena',
         'id' => 33607,
-        'displayChangingRooms' => true,
+        'displayChangingRooms' => 'auto',
+        'changingRooms' => ['A3', 'A4', 'B3', 'B4'],
         'displayField' => true,
         'displaySport' => true,
     ),
@@ -144,6 +154,7 @@ unset($extDocument);  // external document might be large, so release memory exp
 
 $matches = [];
 $lastMatchPerField = [];
+$changingRoomIndex = 0;
 
 // Enkel klasse som representerer en enkelt håndballkamp.
 class Kamp
@@ -166,7 +177,6 @@ function prepareTeamName($rawName) {
     return $rawName;
 }
 
-// Foreach row in table
 foreach ($schedule as $row) {
     $thisMatch = new Kamp();
     $thisMatch->starttid = DateTimeImmutable::createFromFormat('H:i', $row['Tid']);
@@ -191,18 +201,25 @@ foreach ($schedule as $row) {
         $thisMatch->sport = 'handball';
     } elseif (mb_eregi('Innebandy', $rawSport)) {
         $thisMatch->sport = 'floorball';
+    } else {
+        $thisMatch->sport = null;
     }
 
     $rawBane = $row['Bane']['Text'];
     $splittedBane = explode(' ', $rawBane);
     $thisMatch->bane = array_slice($splittedBane, -1, 1)[0];
 
-    if (count($matches) % 2 == 0) {
-        $thisMatch->hjemmegarderobe = 'A';
-        $thisMatch->bortegarderobe = 'B';
-    } else {
-        $thisMatch->hjemmegarderobe = 'C';
-        $thisMatch->bortegarderobe = 'D';
+    if ($chosenVenueInfo['displayChangingRooms']) {
+        $changingRooms = $chosenVenueInfo['changingRooms'];
+        $thisMatch->hjemmegarderobe = $changingRooms[$changingRoomIndex];
+
+        $changingRoomIndex++;
+        $changingRoomIndex = $changingRoomIndex % count($changingRooms);
+
+        $thisMatch->bortegarderobe = $changingRooms[$changingRoomIndex];
+
+        $changingRoomIndex++;
+        $changingRoomIndex = $changingRoomIndex % count($changingRooms);
     }
 
     // Update last match's end time to be our end time
@@ -221,6 +238,31 @@ foreach ($lastMatchPerField as $field => $match) {
     $match->sluttid = $match->starttid->add($DEFAULT_MATCH_DURATION);
 }
 
+// Calculate auto values for venues
+$fields = [];
+$sports = [];
+foreach ($matches as $match) {
+    $fields[$match->bane] = true;
+    $sports[$match->sport] = true;
+}
+$numFields = count($fields);
+$numSports = count($sports);
+
+$displayChangingRooms = $chosenVenueInfo['displayChangingRooms'];
+if ($displayChangingRooms === 'auto') {
+    $displayChangingRooms = ($numFields == 1);
+}
+
+$displayField = $chosenVenueInfo['displayField'];
+if ($displayField === 'auto') {
+    $displayField = ($numFields != 1);
+}
+
+$displaySport = $chosenVenueInfo['displaySport'];
+if ($displaySport === 'auto') {
+    $displaySport = ($numSports != 1);
+}
+
 $twig = Template::init();
 
 $output = $twig->render(
@@ -229,9 +271,9 @@ $output = $twig->render(
         'kamper' => $matches,
         'dato' => $matchDate,
         'title' => $chosenVenueInfo['title'],
-        'displayChangingRooms' => $chosenVenueInfo['displayChangingRooms'],
-        'displayField' => $chosenVenueInfo['displayField'],
-        'displaySport' => $chosenVenueInfo['displaySport'],
+        'displayChangingRooms' => $displayChangingRooms,
+        'displayField' => $displayField,
+        'displaySport' => $displaySport,
     ]);
 
 $cacheFile->writeAndOutput($output);

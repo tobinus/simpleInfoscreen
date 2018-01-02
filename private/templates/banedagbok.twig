@@ -19,11 +19,8 @@
 
                 return today.getTime() === matchDay.getTime();
             }();
-            // Debugging
-            sameDay = true;
 
             function getDate() {
-                return new Date(2017, 0, 14, 14, 50, 0);
                 return new Date();
             }
             function updateMinute() {
@@ -90,12 +87,11 @@
 
                 var rows = $( '#kamper' ).find( 'tbody' ).children();
 
+                var desiredNumMatches = 6;
                 // Are there too many rows?
-        		if (rows.length >= 6) {
+        		if (rows.length > desiredNumMatches) {
                     doneMatches = rows.filter(isDone);
-        		    // We want to stay at 5 rows
-                    var rowsOverLimit = rows.length - 5;
-                    // Yes, hide the matches that are done (except min 2)
+                    var rowsOverLimit = rows.length - desiredNumMatches;
                     var oldMatchesToKeep = Math.max(2, (doneMatches.length - rowsOverLimit));
         		    if (doneMatches.length > oldMatchesToKeep) {
         		        doneMatches.slice(0, -oldMatchesToKeep).remove();
@@ -168,11 +164,13 @@
                 text-align: left;
             }
             .sportCell img {
-                /* width: 1em; */
-                height: 52px;
+                height: 1.4em;
             }
             .bg-primary .sportCell img {
                 filter: invert(100%);
+            }
+            .text-muted .sportCell img {
+                opacity: 0.46;
             }
             @media screen and (max-device-width: 1600px) {
                 h2 {
@@ -316,7 +314,7 @@
                         <td>{{ kamp.starttid|date("H:i") }}</td>
                         <td class="hide">{{ kamp.sluttid|date("H:i") }}</td>
                         {% if displaySport %}
-                            <td class="sportCell"><img src="{{ sportIcons[kamp.sport] }}" alt="{{ kamp.sport }}"/></td>
+                            <td class="sportCell">{% if kamp.sport %}<img src="{{ sportIcons[kamp.sport] }}" alt="{{ kamp.sport }}"/>{% endif %}</td>
                         {% endif %}
                         {% if displayField %}
                             <td>{{ kamp.bane }}</td>
