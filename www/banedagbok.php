@@ -60,12 +60,12 @@ $venues = array(
         'displayChangingRooms' => 'auto',
         'changingRooms' => ['A', 'B', 'C', 'D'],
         'displayField' => 'auto',
-        'displaySport' => 'auto',
+        'displaySport' => true,
     ),
     'eika' => array(
         'title' => 'Kamper i Eika Fet Arena',
         'id' => 33607,
-        'displayChangingRooms' => 'auto',
+        'displayChangingRooms' => true,
         'changingRooms' => ['A3', 'A4', 'B3', 'B4'],
         'displayField' => true,
         'displaySport' => true,
@@ -126,9 +126,9 @@ try {
     // cache is not usable, generate…
 }
 
-// Download a list of matches from handball.no
+// Download a list of matches from nif.no
 if (!function_exists('curl_init')) {
-    trigger_error('The cURL plugin is required in order to download match data from handball.no', E_USER_ERROR);
+    trigger_error('The cURL plugin is required in order to download match data from nif.no', E_USER_ERROR);
     die();
 }
 
@@ -261,6 +261,15 @@ if ($displayField === 'auto') {
 $displaySport = $chosenVenueInfo['displaySport'];
 if ($displaySport === 'auto') {
     $displaySport = ($numSports != 1);
+}
+
+// Shall we trust the result of the simple changing room algorithm?
+if ($numFields > 1 && $displayChangingRooms) {
+    // Nope, set all changing rooms to placeholder
+    foreach ($matches as $match) {
+        $match->hjemmegarderobe = '‒';
+        $match->bortegarderobe = '‒';
+    }
 }
 
 $twig = Template::init();
