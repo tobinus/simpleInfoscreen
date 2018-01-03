@@ -343,7 +343,9 @@ class Settings extends AbstractSettings
                 change($this->weekdaySlideShow, $infoSettings['slideShowToUse']['weekday']);
                 change($this->weekendSlideShow, $infoSettings['slideShowToUse']['weekend']);
                 foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $day) {
-                    change($this->dayOfWeekSlideShows[$day], $infoSettings['slideShowToUse'][$day]);
+                    if (array_key_exists($day, $infoSettings['slideShowToUse'])) {
+                        $this->dayOfWeekSlideShows[$day] = $infoSettings['slideShowToUse'][$day];
+                    }
                 }
             }
             change($this->secondsBetweenUpdateChecks, $infoSettings['secondsBetweenUpdateChecks']);

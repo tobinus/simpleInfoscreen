@@ -44,6 +44,7 @@ namespace tobinus\SimpleInfoscreen;
 class Slide
 {
     protected $url, $duration, $loadingTime;
+    protected $useDateFormatting = false;
 
     /**
      * Create a new slide with the given $url, $duration and $loadingTime.
@@ -51,11 +52,14 @@ class Slide
      * @uses setDuration()
      * @uses setLoadingTime()
      */
-    public function __construct($url, $duration, $loadingTime)
+    public function __construct($url, $duration, $loadingTime, $useDateFormatting = null)
     {
         $this->setUrl($url);
         $this->setDuration($duration);
         $this->setLoadingTime($loadingTime);
+        if ($useDateFormatting !== null) {
+            $this->setUseDateFormatting($useDateFormatting);
+        }
     }
 
     /**
@@ -77,8 +81,9 @@ class Slide
         $url = preg_replace('/^local\//', 'load.php/', $this->url);
         $duration = $this->duration;
         $loadingTime = $this->loadingTime;
+        $useDateFormatting = $this->useDateFormatting ? 'true' : 'false';
 
-        return "new Slide('$url', $duration, $loadingTime)";
+        return "new Slide('$url', $duration, $loadingTime, $useDateFormatting)";
     }
 
     //////////////////////////////////
@@ -153,6 +158,22 @@ class Slide
         } else
         {
             throw new \InvalidArgumentException('New loading time must be a non-negative integer, was '.$newLoadingTime);
+        }
+    }
+
+    public function getUseDateFormatting()
+    {
+        return $this->useDateFormatting;
+    }
+
+    public function setUseDateFormatting($newUseDateFormatting)
+    {
+        if (is_bool($newUseDateFormatting))
+        {
+            $this->useDateFormatting = $newUseDateFormatting;
+        } else
+        {
+            throw new \InvalidArgumentException('New UseDateFormatting flag must be a boolean, was ' . $newUseDateFormatting);
         }
     }
 }

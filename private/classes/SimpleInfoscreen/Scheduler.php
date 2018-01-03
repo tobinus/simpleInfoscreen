@@ -99,7 +99,7 @@ class Scheduler
             // Use the DateTime::format() method instead of date() to ensure locale is English
             $thisTime = new \DateTime("@" . $this->time);
             $dayName = strtolower($thisTime->format('D'));
-            if (array_key_exists($dayName, $settings->dayOfWeekSlideShows)) {
+            if (array_key_exists($dayName, $settings->dayOfWeekSlideShows) && !empty($settings->dayOfWeekSlideShows[$dayName])) {
                 return $settings->dayOfWeekSlideShows[$dayName];
             } elseif (in_array(intval(date("w", $this->time)), [0, 6], true)) {
                 return $settings->weekendSlideShow;

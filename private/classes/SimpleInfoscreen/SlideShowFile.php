@@ -243,7 +243,7 @@ class SlideShowFile extends AbstractSettings implements \IteratorAggregate
             throw new \InvalidArgumentException("$key does not have a url, is 'url' or the slide name misspelled?");
         }
 
-        static $keys = ['url', 'duration', 'loadingTime'];
+        static $keys = ['url', 'duration', 'loadingTime', 'useDateFormatting'];
         static $friendlyDebug = true;
 
         if ($friendlyDebug && count($difference = array_diff(array_keys($value), $keys))) {
@@ -252,12 +252,14 @@ class SlideShowFile extends AbstractSettings implements \IteratorAggregate
         }
         set_unless_defined($value['duration'], 10);
         set_unless_defined($value['loadingTime'], 5);
+        set_unless_defined($value['useDateFormatting'], "");
 
         $url = $value['url'];
         $duration = intval($value['duration']);
         $loadingTime = intval($value['loadingTime']);
+        $useDateFormatting = ($value['useDateFormatting'] === "1");
 
-        $newSlide = new Slide($url, $duration, $loadingTime);
+        $newSlide = new Slide($url, $duration, $loadingTime, $useDateFormatting);
         $this->slides[$key] = $newSlide;
         return $newSlide;
     }
@@ -297,7 +299,7 @@ class SlideShowFile extends AbstractSettings implements \IteratorAggregate
 
             return $this->slideShows[$id];
         } catch (\RuntimeException $e) {
-            trigger_error("There is no slideshow named $id in {$this->configFile}.".
+            trigger_error("There is no slideshow named '$id' in {$this->configFile}.".
             " Please make sure the name in infoscreen.ini (section infoscreen, ".
                 "option slideShowToUse) and {$this->configFile} match up", E_USER_WARNING);
             return null;
