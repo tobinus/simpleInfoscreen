@@ -342,7 +342,8 @@ abstract class AbstractSettings
      * * int/integer,
      * * float,
      * * string/str,
-     * * array/list,
+     * * array/list type-of-elements,
+     * * arrayKeys/listKeys obligatoryKey1 obligatoryKey2 [optionalKey1 optionalKey2] obligatoryKey3 [optionalKey3] ...
      * * <whatever> (if you've implemented $this->validate<Whatever>($value, $remainingExpectationString))
      *
      * @param $value {string} The value to be tested and converted.
@@ -446,14 +447,17 @@ abstract class AbstractSettings
                 case 'datetime':
                     if (strtotime($value) === false) {
                          throw new \InvalidArgumentException
-                         ("date was be in a format accepted by strtotime(), but it was \"$value\"");
+                         ("date must be in a format accepted by strtotime(), but it was \"$value\"");
                     }
                     return new \DateTime($value);
 
                 case 'arrayKeys':
                 case 'listKeys':
                     if (is_array($value) && $expectedOptions != "") {
-                        $expectedKeys = array_flip(explode(" ", $expectedOptions));
+                        separateOptional($expectedOptions, $obligatoryStr, $optionalStr);
+                        $expectedKeys = $obligatoryStr !== '' ? array_flip(explode(" ", $obligatoryStr)) : [];
+                        $optionalKeys = $optionalStr !== '' ? array_flip(explode(" ", $optionalStr)) : [];
+                        $recognizedKeys = array_merge($expectedKeys, $optionalKeys);
                         // Create array with all 'required' keys that are not found in $value
                         $missingKeys = array_diff_key(
                             $expectedKeys,
@@ -462,7 +466,7 @@ abstract class AbstractSettings
                         // Create array with all $value keys that weren't recognized
                         $unrecognizedKeys = array_diff_key(
                             $value,
-                            $expectedKeys
+                            $recognizedKeys
                         );
                         $numMissingKeys = count($missingKeys);
                         $numUnrecognizedKeys = count($unrecognizedKeys);
@@ -470,19 +474,27 @@ abstract class AbstractSettings
                         $file = $this->getConfigFilename();
                         $errorStart = "Config file $file, section infoscreen:";
 
+                        $formatKeyList = function($array) use ($key) {
+                            return "{$key}[".implode("], {$key}[", array_keys($array)) . "]";
+                        };
+
                         if ($numMissingKeys > 0 && $numUnrecognizedKeys > 0) {
-                            trigger_error("$errorStart Option entries {$key}[".implode("], {$key}[", array_keys($missingKeys)).
-                                "] were expected, but not found. Additionally, the following entries were".
-                                " found but not recognized: {$key}[".implode("], {$key}[", array_keys($unrecognizedKeys)).
-                                "]. Perhaps some of them were misspelled?");
+                            trigger_error("$errorStart Option entries {$formatKeyList($missingKeys)} ".
+                                "were expected, but not found. Additionally, the following entries were".
+                                " found but not recognized: {$formatKeyList($unrecognizedKeys)}".
+                                ". Perhaps some of them were misspelled? All recognized entries: {$formatKeyList($recognizedKeys)}.");
                         } elseif($numUnrecognizedKeys > 0) {
                             trigger_error("$errorStart The following entries were found, but not recognized: ".
-                                "{$key}[" . implode("], {$key}[", array_keys($unrecognizedKeys)) . "].".
+                                "{$formatKeyList($unrecognizedKeys)}.".
                                 " This likely indicates that the config file is aiming at a newer version".
-                                " of Infoscreen, which might regonize those entries. Perhaps upgrade?");
+                                " of Infoscreen, which might recognize those entries. Perhaps upgrade?".
+                                " All entries recognized by this version: {$formatKeyList($recognizedKeys)}.");
+                        } elseif($numMissingKeys > 0) {
+                            trigger_error("$errorStart Option entries {$formatKeyList($missingKeys)} ".
+                                "were expected, but not found.");
                         }
 
-                        return array_intersect_key($value, $expectedKeys);
+                        return array_intersect_key($value, $recognizedKeys);
                     } elseif (!is_array($value)) {
                         throw new \InvalidArgumentException('expected array (use [])');
                     } elseif ($expectedOptions == "") {
