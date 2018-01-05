@@ -92,10 +92,20 @@ class Scheduler
     {
         if (!$this->useScheduling) {
             return $settings->defaultSlideShow;
-        } elseif (in_array(intval(date("w", $this->time)), [0, 6], true)) {
-            return $settings->weekendSlideShow;
         } else {
-            return $settings->weekdaySlideShow;
+            // Check if there exists a specific slide show for this day of week.
+            // If not, default to weekend or weekday slide show.
+
+            // Use the DateTime::format() method instead of date() to ensure locale is English
+            $thisTime = new \DateTime("@" . $this->time);
+            $dayName = strtolower($thisTime->format('D'));
+            if (array_key_exists($dayName, $settings->dayOfWeekSlideShows) && !empty($settings->dayOfWeekSlideShows[$dayName])) {
+                return $settings->dayOfWeekSlideShows[$dayName];
+            } elseif (in_array(intval(date("w", $this->time)), [0, 6], true)) {
+                return $settings->weekendSlideShow;
+            } else {
+                return $settings->weekdaySlideShow;
+            }
         }
     }
 
@@ -105,10 +115,7 @@ class Scheduler
         if (!$this->useScheduling) {
             return false;
         }
-        // A change will have happened last Saturday or last Monday
-        $weekday = intval(date('w', $this->time));
-        $mostRecentSaturday = strtotime('-1 week saturday midnight', $this->time);
-        $mostRecentMonday = strtotime('-1 week monday midnight', $this->time);
-        return max($mostRecentSaturday, $mostRecentMonday);
+        // We can only assume this day has a different slide show from the previous day
+        return strtotime('midnight', $this->time);
     }
 }

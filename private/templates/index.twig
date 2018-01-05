@@ -4,6 +4,7 @@
     <meta charset="UTF-8"/>
     <title>{{ title }}</title>
     <script src="js/jquery-2.1.4.js"></script>
+    <script src="js/errorHandler.js"></script>
     <script>
         var timeout = 60 * 1000; // one minute
         var reloadTimer;
@@ -13,6 +14,7 @@
             reloadTimer = setTimeout(reloadPage, timeout);
         }
 
+        // Used by displaySlideShow.php as heartbeat
         function resetReloadTimer()
         {
             clearTimeout(reloadTimer);
@@ -37,12 +39,13 @@
                 type: 'GET',
                 data: {
                     checkUpdate: {{ lastUpdate|e('js') }},
+                    _: Date.now(),
                 },
                 dataType: 'text',
                 mimeType: 'text/plain',
                 success: function ( text )
                 {
-                    if (text == 'true') {
+                    if (text === 'true') {
                         location.reload(true);
                     }
                 }

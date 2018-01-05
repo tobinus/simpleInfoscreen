@@ -110,3 +110,23 @@ function applyDefault(&$currentValue, $defaultVar, $testEmpty = false)
         return $currentValue;
     }
 }
+
+/**
+ * Create two strings where optional words from the original are separated from the obligatory.
+ *
+ * Example: Take the string "a b c [d] e [f g]". The two strings "a b c e" and "d f g" will be created.
+ * @param $str string The original string.
+ * @param $obligatory string Set to the string with the obligatory words.
+ * @param $optional string Set to the string with the optional words.
+ */
+function separateOptional($str, &$obligatory, &$optional)
+{
+    $optional = '';
+    $obligatory = mb_ereg_replace_callback('\s?\[([^\]]+)\]', function ($match) use (&$optional) {
+        $optional .= ' ' . $match[1];
+        return '';
+    }, $str);
+
+    $optional = trim($optional);
+    $obligatory = trim($obligatory);
+}

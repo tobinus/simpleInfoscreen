@@ -43,6 +43,7 @@ namespace tobinus\SimpleInfoscreen;
  * @property-read string $defaultSlideShow [infoscreen] slideShowToUse[default]
  * @property-read string $weekdaySlideShow [infoscreen] slideShowToUse[weekday]
  * @property-read string $weekendSlideShow [infoscreen] slideShowToUse[weekend]
+ * @property-read array $dayOfWeekSlideShows [infoscreen] slideShowToUse[mon-sun]
  * @property-read int $secondsBetweenUpdateChecks [infoscreen] Amount of seconds between AJAX
  * requests to updateAvailable.php.
  * @property-read int $slideLoadTimeout [infoscreen] seconds between initializing
@@ -81,6 +82,7 @@ class Settings extends AbstractSettings
     protected $defaultSlideShow;
     protected $weekdaySlideShow;
     protected $weekendSlideShow;
+    protected $dayOfWeekSlideShows;
     protected $secondsBetweenUpdateChecks;
     protected $slideLoadTimeout;
     protected $title;
@@ -158,6 +160,7 @@ class Settings extends AbstractSettings
         $this->defaultSlideShow = $slideShowToUse['default'];
         $this->weekdaySlideShow = $slideShowToUse['weekday'];
         $this->weekendSlideShow = $slideShowToUse['weekend'];
+        $this->dayOfWeekSlideShows = array_diff_key($slideShowToUse, array_flip(['default', 'weekday', 'weekend']));
         $this->title = $infoscreen['title'];
         $this->transition = $appearance['transition'];
         $this->useProgressBar = $appearance['useProgressBar'];
@@ -182,6 +185,7 @@ class Settings extends AbstractSettings
             'defaultSlideShow',
             'weekdaySlideShow',
             'weekendSlideShow',
+            'dayOfWeekSlideShows',
             'secondsBetweenUpdateChecks',
             'slideLoadTimeout',
             'title',
@@ -214,7 +218,7 @@ class Settings extends AbstractSettings
             'default' =>
                 [
                     'enableScheduling' => 'bool',
-                    'slideShowToUse' => 'arrayKeys default weekday weekend',
+                    'slideShowToUse' => 'arrayKeys [default weekday weekend mon tue wed thu fri sat sun]',
                     'secondsBetweenUpdateChecks' => 'int',
                     'slideLoadTimeout' => 'int',
                     'title' => 'string',
@@ -275,6 +279,7 @@ class Settings extends AbstractSettings
      */
     protected function validateSlideShows($value, $expectationOptions, $key)
     {
+        print('validateSlideShows was called');
         if (!is_array($value)) {
             throw new \InvalidArgumentException('expected array, string was received');
         }
@@ -337,6 +342,11 @@ class Settings extends AbstractSettings
                 change($this->defaultSlideShow, $infoSettings['slideShowToUse']['default']);
                 change($this->weekdaySlideShow, $infoSettings['slideShowToUse']['weekday']);
                 change($this->weekendSlideShow, $infoSettings['slideShowToUse']['weekend']);
+                foreach (['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as $day) {
+                    if (array_key_exists($day, $infoSettings['slideShowToUse'])) {
+                        $this->dayOfWeekSlideShows[$day] = $infoSettings['slideShowToUse'][$day];
+                    }
+                }
             }
             change($this->secondsBetweenUpdateChecks, $infoSettings['secondsBetweenUpdateChecks']);
             change($this->slideLoadTimeout, $infoSettings['slideLoadTimeout']);
@@ -351,7 +361,7 @@ class Settings extends AbstractSettings
 }
 
 /**
- * Helper function which assigns source to target, but only if source isn't empty
+ * Helper function which assigns source to target, but only if source is set
  * @param mixed $target Variable to be overwritten.
  * @param mixed $source Variable which will be assigned to target, but only if it is not empty.
  */

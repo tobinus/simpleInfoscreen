@@ -1,3 +1,4 @@
+'use strict';
 /** Slide(url, duration): create a new Slide object
  * url: url to load
  * duration: amount of seconds to stay on this slide,
@@ -9,16 +10,77 @@
  * @param {int} duration Amount of seconds that slide will be shown.
  * The time starts ticking once the transition animation _starts_.
  * @param {int} [loadTime=1] Amount of seconds this slide will be given to load.
+ * @param {bool} useDateFormatting Whether to replace parts of url with current time
+ * when requested.
  * @constructor
  */
-function Slide(url, duration, loadTime)
+function Slide(url, duration, loadTime, useDateFormatting)
 {
     if (typeof loadTime === 'undefined') { loadTime = 1; }
 
-    this.url = url;
+    this._url = url;
     this.duration = duration;
     this.loadTime = loadTime;
+    this.useDateFormatting = useDateFormatting;
 }
+
+Slide.prototype.getUrl = function() {
+    if (this.useDateFormatting) {
+        return this.applyCurrentDateFormatting(this._url);
+    } else {
+        return this._url;
+    }
+};
+
+Slide.prototype.applyCurrentDateFormatting = function(str) {
+    return this.applyDateFormatting(str, new Date());
+};
+
+Slide.prototype.applyDateFormatting = function(str, date) {
+    function force2digits(num) {
+        return ("0" + num).slice(-2);
+    }
+    return str.replace(/%(.)/g, function(match, letter, offset, string) {
+        switch (letter) {
+            case 'd':
+                return force2digits(date.getDate());
+            case 'D':
+                return ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'][date.getDay()];
+            case 'j':
+                return '' + date.getDate();
+            case 'l':
+                return ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][date.getDay()];
+            case 'N':
+                var day = date.getDay();
+                if (day === 0) {
+                    day = 7;
+                }
+                return '' + day;
+            case 'w':
+                return '' + date.getDay();
+            case 'm':
+                return force2digits(date.getMonth() + 1);
+            case 'n':
+                return '' + (date.getMonth() + 1);
+            case 'Y':
+                return '' + date.getFullYear();
+            case 'G':
+                return '' + date.getHours();
+            case 'H':
+                return force2digits(date.getHours());
+            case 'i':
+                return force2digits(date.getMinutes());
+            case 's':
+                return force2digits(date.getSeconds());
+            case 'Z':
+                return '' + (date.getTimezoneOffset() * 60 * (-1));
+            case 'U':
+                return '' + Math.round(date.getTime() / 1000);
+            default:
+                return letter;
+        }
+    });
+};
 
 // SlideShow(Slide slide1, Slide slide2, ...)
 // An object representing the entirity of the slideshow
@@ -88,7 +150,7 @@ function nextSlide() {
     if (!mustReload) {
         $( "#next" ).one( "load" , nextSlideOnLoad)
         // Actually start loading the next slide
-                    .attr( 'src' , slideShow.next().url);
+                    .attr( 'src' , slideShow.next().getUrl());
         
     }
 }
@@ -232,7 +294,7 @@ $( document ).ready(function ()
     // Start the slideshow once the first slide is loaded
     $( "#next" ).one( "load" , nextSlideOnLoad)
     // Start loading the first slide
-                   .attr('src', slideShow.current().url);
+                   .attr('src', slideShow.current().getUrl());
     /* Check periodically to see whether the slideshow has been changed on the server
        Set the update interval to the setting, ± 5 sec
        This is randomized so that the server won't get many requests on the very
